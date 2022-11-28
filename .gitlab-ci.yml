@@ -1,0 +1,41 @@
+image: maven:3.6.3-openjdk-17
+
+stages:
+  - build
+  - test
+  - report
+
+Build:
+  stage: build
+  when: always
+  script:
+    - mvn clean compile
+
+ApiTests:
+  stage: test
+  when: always
+  script:
+    - mvn verify
+  allow_failure: true
+  artifacts:
+    when: always
+    paths:
+      - target/site/serenity/*
+    expire_in: 1 week
+
+Report:
+  stage: report
+  when: always
+  needs:
+    - job: ApiTests
+  dependencies:
+    - ApiTests
+  script:
+    - echo "Detailed report link -- https://gitlab.com/dfaliush/soft_industry_example/-/jobs/${CI_JOB_ID}/artifacts/file/target/site/serenity/index.html"
+    - echo "Summary report link -- https://gitlab.com/dfaliush/soft_industry_example/-/jobs/${CI_JOB_ID}/artifacts/file/target/site/serenity/serenity-summary.html"
+  allow_failure: false
+  artifacts:
+    when: always
+    paths:
+      - target/site/serenity/serenity-summary.html
+    expire_in: 1 week
